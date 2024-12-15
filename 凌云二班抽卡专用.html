@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>凌云二班随机点名器</title>
+    <style>
+        body {
+            font-family: "Microsoft YaHei", Arial, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+            background-image: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        .title {
+            color: #2c3e50;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            font-size: 36px;
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+        .result {
+            font-size: 72px;
+            margin: 20px auto;
+            padding: 40px;
+            border-radius: 15px;
+            background-image: linear-gradient(120deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            min-height: 100px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+        .button {
+            background-image: linear-gradient(to right, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 20px;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+        textarea {
+            width: 80%;
+            height: 120px;
+            margin: 15px;
+            padding: 20px;
+            font-size: 16px;
+            border-radius: 12px;
+            border: 2px solid #e0e0e0;
+            resize: none;
+            transition: all 0.3s ease;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+        }
+        textarea:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79,172,254,0.2);
+        }
+        .history {
+            margin-top: 30px;
+            text-align: left;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        .history h3 {
+            color: #2c3e50;
+            border-bottom: 3px solid #4facfe;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        .credit {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            font-size: 12px;
+            color: rgba(255,255,255,0.7);
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+        #selectedHistory {
+            line-height: 1.8;
+            color: #444;
+        }
+        .controls {
+            margin: 20px 0;
+        }
+        .password-dialog {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-image: linear-gradient(120deg, #4facfe 0%, #00f2fe 100%);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            display: none;
+            z-index: 1000;
+            color: white;
+        }
+        .password-input {
+            padding: 12px;
+            margin: 15px 0;
+            width: 200px;
+            border: none;
+            border-radius: 25px;
+            text-align: center;
+            font-size: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .password-input:focus {
+            outline: none;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+        }
+        .admin-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-image: linear-gradient(120deg, #4facfe 0%, #00f2fe 100%);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            display: none;
+            z-index: 1000;
+            color: white;
+            width: 400px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .weight-input {
+            width: 80px;
+            margin: 5px;
+            padding: 8px;
+            border: none;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 16px;
+        }
+        .student-weight {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            align-items: center;
+            padding: 8px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+        }
+        .student-weight span {
+            font-size: 16px;
+            flex: 1;
+            text-align: left;
+            margin-right: 15px;
+        }
+        .admin-panel::-webkit-scrollbar {
+            width: 8px;
+        }
+        .admin-panel::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+        .admin-panel::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+        }
+        .admin-panel::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+        .close-btn {
+            position: absolute;
+            right: 15px;
+            top: 15px;
+            cursor: pointer;
+            color: white;
+            font-size: 24px;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+        .admin-panel h3 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 20px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+            padding-bottom: 10px;
+        }
+        .force-pick-section {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .force-pick-section h4 {
+            margin: 0 0 10px 0;
+            color: white;
+            font-size: 16px;
+        }
+        .force-pick-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+        .force-select {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .small-button {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        .small-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        .force-pick-list {
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        .force-pick-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 12px;
+            margin: 5px 0;
+            border-radius: 6px;
+        }
+        .force-pick-item button {
+            background: rgba(255, 0, 0, 0.3);
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .file-controls {
+            margin: 15px 0;
+        }
+        .status-message {
+            color: #4facfe;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">凌云二班随机点名器</h1>
+        
+        <div class="result" id="result">准备开始...</div>
+
+        <div>
+            <button class="button" onclick="startRandom()">开始随机</button>
+            <button class="button" onclick="stopRandom()">停止</button>
+        </div>
+
+        <div class="file-controls">
+            <input type="file" id="fileInput" accept=".txt" style="display: none;">
+            <button class="button" onclick="document.getElementById('fileInput').click()">上传名单</button>
+            <button class="button" onclick="clearList()">清空名单</button>
+        </div>
+
+        <div>
+            <textarea id="studentList" placeholder="请输入学生名单，每行一个名字&#10;或点击上方按钮上传txt文件"></textarea>
+        </div>
+
+        <div class="history">
+            <h3>已抽取学生：</h3>
+            <div id="selectedHistory"></div>
+        </div>
+    </div>
+
+    <!-- 密码验证对话框 -->
+    <div id="passwordDialog" class="password-dialog">
+        <h3>请输入管理员密码</h3>
+        <input type="password" id="passwordInput" class="password-input" placeholder="请输入密码">
+        <br>
+        <button class="button" onclick="verifyPassword()">确认</button>
+        <button class="button" onclick="closePasswordDialog()">取消</button>
+    </div>
+
+    <!-- 作弊系统面板 -->
+    <div id="adminPanel" class="admin-panel">
+        <div class="close-btn" onclick="closeAdminPanel()">×</div>
+        <h3>概率设置</h3>
+        <div class="force-pick-section">
+            <h4>强制抽取设置</h4>
+            <div class="force-pick-controls">
+                <select id="forceStudent" class="force-select"></select>
+                <input type="number" id="forceCount" class="weight-input" value="5" min="1" max="100" placeholder="次数">
+                <button class="small-button" onclick="addForcePick()">添加</button>
+            </div>
+            <div id="forcePickList" class="force-pick-list"></div>
+        </div>
+        <div id="weightSettings"></div>
+        <button class="button" onclick="saveWeights()">保存设置</button>
+    </div>
+
+    <div class="credit" ondblclick="showPasswordDialog()">Made By Y.G.L</div>
+
+    <script>
+        let timer;
+        let students = [];
+        let selectedStudents = [];
+        let isRunning = false;
+        let weights = {};
+        let speed = 20;
+        let forcePicks = [];
+        let currentCount = 0;
+        const CORRECT_PASSWORD = 'k17784556112';
+
+        // 页面加载时初始化
+        window.onload = function() {
+            loadSavedList();
+            
+            const savedWeights = localStorage.getItem('weights');
+            if (savedWeights) {
+                weights = JSON.parse(savedWeights);
+            }
+            
+            const savedForcePicks = localStorage.getItem('forcePicks');
+            if (savedForcePicks) {
+                forcePicks = JSON.parse(savedForcePicks);
+            }
+
+            const savedHistory = localStorage.getItem('selectedHistory');
+            if (savedHistory) {
+                selectedStudents = JSON.parse(savedHistory);
+                updateHistory();
+            }
+        }
+
+        // 处理文件上传
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const text = e.target.result;
+                    document.getElementById('studentList').value = text;
+                    localStorage.setItem('studentList', text);
+                    students = text.split('\n').filter(name => name.trim() !== '');
+                    if (document.getElementById('adminPanel').style.display === 'block') {
+                        updateForceSelect();
+                    }
+                };
+                reader.readAsText(file, 'UTF-8');
+            }
+        });
+
+        function loadSavedList() {
+            const savedList = localStorage.getItem('studentList');
+            if (savedList) {
+                document.getElementById('studentList').value = savedList;
+                students = savedList.split('\n').filter(name => name.trim() !== '');
+            }
+        }
+
+        function clearList() {
+            if (confirm('确定要清空当前名单吗？')) {
+                document.getElementById('studentList').value = '';
+                localStorage.removeItem('studentList');
+                localStorage.removeItem('weights');
+                localStorage.removeItem('forcePicks');
+                localStorage.removeItem('selectedHistory');
+                students = [];
+                selectedStudents = [];
+                weights = {};
+                forcePicks = [];
+                updateHistory();
+            }
+        }
+
+        function showPasswordDialog() {
+            document.getElementById('passwordDialog').style.display = 'block';
+            document.getElementById('passwordInput').value = '';
+            document.getElementById('passwordInput').focus();
+        }
+
+        function closePasswordDialog() {
+            document.getElementById('passwordDialog').style.display = 'none';
+        }
+
+        function verifyPassword() {
+            const input = document.getElementById('passwordInput').value;
+            if (input === CORRECT_PASSWORD) {
+                closePasswordDialog();
+                showAdminPanel();
+            } else {
+                alert('密码错误！');
+            }
+        }
+
+        function showAdminPanel() {
+            const panel = document.getElementById('adminPanel');
+            panel.style.display = 'block';
+            updateWeightSettings();
+            updateForceSelect();
+            updateForcePickList();
+        }
+
+        function closeAdminPanel() {
+            document.getElementById('adminPanel').style.display = 'none';
+        }
+
+        function updateForceSelect() {
+            const select = document.getElementById('forceStudent');
+            select.innerHTML = '<option value="">选择学生</option>' + 
+                students.map(student => 
+                    `<option value="${student}">${student}</option>`
+                ).join('');
+        }
+
+        function addForcePick() {
+            const student = document.getElementById('forceStudent').value;
+            const count = parseInt(document.getElementById('forceCount').value);
+            
+            if (!student || !count) {
+                alert('请选择学生和设置次数！');
+                return;
+            }
+
+            forcePicks.push({ student, count, current: 0 });
+            updateForcePickList();
+        }
+
+        function updateForcePickList() {
+            const container = document.getElementById('forcePickList');
+            container.innerHTML = forcePicks.map((pick, index) => `
+                <div class="force-pick-item">
+                    <span>${pick.student} - 每${pick.count}次必出 (当前: ${pick.current})</span>
+                    <button onclick="removeForcePick(${index})">删除</button>
+                </div>
+            `).join('');
+        }
+
+        function removeForcePick(index) {
+            forcePicks.splice(index, 1);
+            updateForcePickList();
+        }
+
+        function updateWeightSettings() {
+            const container = document.getElementById('weightSettings');
+            container.innerHTML = '';
+            students.forEach(student => {
+                if (!weights[student]) weights[student] = 1;
+                const div = document.createElement('div');
+                div.className = 'student-weight';
+                div.innerHTML = `
+                    <span>${student}</span>
+                    <input type="number" class="weight-input" 
+                           value="${weights[student]}" 
+                           min="0" max="100" 
+                           onchange="updateWeight('${student}', this.value)">
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function updateWeight(student, value) {
+            weights[student] = parseFloat(value) || 1;
+        }
+
+        function saveWeights() {
+            localStorage.setItem('weights', JSON.stringify(weights));
+            localStorage.setItem('forcePicks', JSON.stringify(forcePicks));
+            closeAdminPanel();
+        }
+
+        function weightedRandom() {
+            currentCount++;
+            
+            for (let pick of forcePicks) {
+                pick.current++;
+                if (pick.current >= pick.count) {
+                    pick.current = 0;
+                    return pick.student;
+                }
+            }
+
+            const totalWeight = students.reduce((sum, student) => sum + (weights[student] || 1), 0);
+            let random = Math.random() * totalWeight;
+            
+            for (let student of students) {
+                random -= (weights[student] || 1);
+                if (random <= 0) return student;
+            }
+            return students[0];
+        }
+
+        function formatDateTime() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+        }
+
+        function startRandom() {
+            if (isRunning) return;
+            
+            const input = document.getElementById('studentList').value;
+            if (input !== localStorage.getItem('studentList')) {
+                localStorage.setItem('studentList', input);
+            }
+            
+            students = input.split('\n').filter(name => name.trim() !== '');
+            
+            if (students.length === 0) {
+                alert('请先输入或上传学生名单！');
+                return;
+            }
+
+            isRunning = true;
+            timer = setInterval(() => {
+                document.getElementById('result').innerText = weightedRandom();
+            }, speed);
+        }
+
+        function stopRandom() {
+            if (!isRunning) return;
+            
+            clearInterval(timer);
+            isRunning = false;
+            
+            const selectedStudent = document.getElementById('result').innerText;
+            selectedStudents.push(`${selectedStudent} - ${formatDateTime()}`);
+            
+            localStorage.setItem('selectedHistory', JSON.stringify(selectedStudents));
+            updateHistory();
+        }
+
+        function updateHistory() {
+            const historyDiv = document.getElementById('selectedHistory');
+            historyDiv.innerHTML = selectedStudents.map((student, index) => 
+                `${index + 1}. ${student}`
+            ).join('<br>');
+        }
+
+        document.getElementById('passwordInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                verifyPassword();
+            }
+        });
+    </script>
+</body>
+</html>
